@@ -1,0 +1,210 @@
+<html>
+<head>
+    <title>CSCI-510: Mountains</title>
+
+    <!-- vertex Shader -->
+    <script id="shader" type="wgsl">
+        struct VertexOutput {
+                      @builtin(position) aVertexPosition: vec4<f32>,
+                      @location(0) bary: vec3<f32>,
+          };
+
+         struct UniformStruct {
+             theta : vec4<f32>
+         };
+
+         @group(0) @binding(0) var<uniform> uniformStruct : UniformStruct;
+
+         @vertex
+            fn vs_main(
+                      @location(0) inPos: vec3<f32>,
+        @location(1) bary : vec3<f32>) -> VertexOutput {
+            var out: VertexOutput;
+            // Compute the sines and cosines of each rotation
+            // about each axis - must be converted into radians first
+            var c = cos(  uniformStruct.theta );
+            var s = sin(  uniformStruct.theta );
+
+            // translation matrix
+            var trans = mat4x4<f32> ( 1.0,  0.0,  0.0,  0.0,
+                             0.0,  1.0,  0.0,  0.0,
+                             0.0, 0.0,  1.0,  0.0,
+                             0.0,  0.0, 0.5,  1.0 );
+            // scale matrix
+            var scale = mat4x4<f32> ( 1.0,  0.0,  0.0,  0.0,
+                             0.0,  1.0,  0.0,  0.0,
+                             0.0, 0.0,  1.0,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+            // rotation matrices
+            var rx = mat4x4<f32> ( 1.0,  0.0,  0.0,  0.0,
+                             0.0,  c.x,  s.x,  0.0,
+                             0.0, -s.x,  c.x,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+
+            var ry = mat4x4<f32> ( c.y,  0.0, -s.y,  0.0,
+                             0.0,  1.0,  0.0,  0.0,
+                             s.y,  0.0,  c.y,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+
+            var rz = mat4x4<f32> ( c.z,  s.z,  0.0,  0.0,
+                            -s.z,  c.z,  0.0,  0.0,
+                             0.0,  0.0,  1.0,  0.0,
+                             0.0,  0.0,  0.0,  1.0 );
+
+
+            out.aVertexPosition =  trans * rz * ry * rx * scale * vec4<f32>(inPos.x, inPos.y, inPos.z, 1);
+            out.bary = bary;
+            return out;
+           }
+
+           @fragment
+           fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+                var fragColor = vec4<f32> (0.5, 0.5, 0.5, 1.0 );
+                // if on the edge, draw black, otherwsie, draw grey
+                if (in.bary.x < 0.01 || in.bary.y < 0.01 || in.bary.z < 0.01) {
+                    fragColor = vec4 (1.0, 1.0, 1.0, 1.0);
+                }
+                return fragColor;
+           }
+
+    </script>
+   
+    <!-- include the mountain creation functions -->
+    <script type="text/javascript" src="./mountains.js"></script>
+
+    <!-- include the camera functions -->
+    <script type="text/javascript" src="./cameraMain.js"></script>
+
+    <!-- keyboard functions -->
+    <script type="text/javascript">
+
+        async function gotKey(event) {
+
+            var key = event.key;
+
+            //  incremental rotation
+            if (key == 'x')
+                angles[0] -= angleInc;
+            else if (key == 'y')
+                angles[1] -= angleInc;
+            else if (key == 'z')
+                angles[2] -= angleInc;
+            else if (key == 'X')
+                angles[0] += angleInc;
+            else if (key == 'Y')
+                angles[1] += angleInc;
+            else if (key == 'Z')
+                angles[2] += angleInc;
+
+            // shape selection (Change this to different parameters for mountain generation)
+            else if (key == '1' || key == 'c') {
+                curShape = CUBE;
+            }
+            else if (key == '2' || key == 'C') {
+                curShape = CYLINDER;
+            }
+            else if (key == '3' || key == 'n') {
+                curShape = CONE;
+            } else if (key == '4') {
+                curShape = COMPUTECUBE;
+            }
+
+            // tessellation control
+            else if (key == '+') {
+                division1 = division1 + 1;
+            }
+            else if (key == '=') {
+                division2 = division2 + 1;
+            }
+            else if (key == '-') {
+                if (division1 > 1) {
+                    division1 = division1 - 1;
+                }
+            }
+            else if (key == '_') {
+                if (division2 > 1) {
+                    division2 = division2 - 1;
+                }
+            }
+
+            // reset
+            else if (key == 'r' || key == 'R') {
+                angles[0] = anglesReset[0];
+                angles[1] = anglesReset[1];
+                angles[2] = anglesReset[2];
+            }
+
+            // create a new shape and do a redo a draw
+            await createMountain();
+            draw();
+        }
+
+    </script>
+
+    <script type="text/javascript">
+        // Call init once the webpage has loaded
+        window.onload = init;
+    </script>
+</head>
+
+<body>
+  <h1>CSCI-510: Mountains</h1>
+  <table>
+      <tr>
+          <td><canvas id="webgpu" width="800" height="800">
+            Your browser does not support the HTML5 canvas element.
+          </canvas></td>
+          
+          <td>
+              <h3>Controls</h3>
+              
+              <table border="1">
+              <tbody>
+              <tr>
+              <td>x, y, z</td>
+              <td>Rotate the current shape forward about the x, y, or z axis</td>
+              </tr>
+              <tr>
+              <td>X, Y, Z</td>
+              <td>Rotate the current shape backward about the x, y, or z axis</td>
+              </tr>
+              <tr>
+              <td>1, c</td>
+              <td>Select the cube as the current shape (using current tessellation settings)</td>
+              </tr>
+              <tr>
+              <td>2, C</td>
+              <td>Select the cylinder as the current shape (using current tessellation settings)</td>
+              </tr>
+              <tr>
+              <td>3, n</td>
+              <td>Select the cone as the current shape (using current tessellation settings)</td>
+              </tr>
+              <tr>
+              <td>4</td>
+              <td>Select the compute shader cube as the current shape (using current tessellation settings)</td>
+              </tr>
+              <tr>
+              <td>+, -</td>
+              <td>Increment/decrement the primary subdivision of the current shape by 1</td>
+              </tr>
+              <tr>
+              <td>=, _</td>
+              <td>Increment/decrement the secondary subdivision of the current shape by 1</td>
+              </tr>
+              <tr>
+              <td>r, R</td>
+              <td>Reset the figure to its original orientation</td>
+              </tr>
+              </tbody>
+              </table>
+              
+          </td>
+      </tr>
+  </table>
+  
+  
+
+</body>
+</html>
+
