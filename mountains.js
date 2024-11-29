@@ -1,19 +1,13 @@
 /**
  * mountains.js
  * 
- * @summary Generates mountainous terrain using Fractional Perlin Noise and the Gradiant Method, 
+ * @summary Generates mountainous terrain using Fractional Brownian Motion with 
+ * Perlin Noise and the Gradiant Method, 
  * as defined by Inigo Quilez in this article: https://iquilezles.org/articles/morenoise/
  * 
  * @author Audrey Fuller <alf9310@rit.edu>
  * @author Gabe Frahm
  */
-
-/**
- * Generate an elevation for every (x,y) coordinate on the plane
- */
-function perlinNoise () {
-
-}
 
 /**
  * Calculate the gradient descent of a (x, y) position on our generated perlin noise 
@@ -30,6 +24,10 @@ function gradiantDescent () {
  */
 function gradiantTrick () {
     // Generate intitial layer of perlin noise
+    gridResolution = 1;
+    generatePerlinNoise(gridResolution, .5);
+
+    //makePlane(10, .5, 'y', -.25);
 
     // Find gradient at all points using gradient descent
     // Calculate influence of layer based on slope (1 / (1 + k * m)) (k controls pointyness, can use different formulas)
@@ -39,41 +37,17 @@ function gradiantTrick () {
     // Combine with previous layer 
     // Repeat 
 
-    makeCube(3);
-
-}
-
-/**
- * Creates the triangles for a cube with dimensions 0.5 x 0.5 x 0.5 on each side 
- * (and the origin in the center of the cube)
- * @param {Integer} subdivisions Number of subdivisions along each cube face
- */
-function makeCube (subdivisions)  {
-    var size = 0.5;
-    // For each face of the cube, tessellate 
-    // Front face
-    makeFace(subdivisions, size, 'z', -size / 2);
-    // Back face
-    makeFace(subdivisions, size, 'z', size / 2);
-    // Right face
-    makeFace(subdivisions, size, 'x', size / 2);
-    // Left face
-    makeFace(subdivisions, size, 'x', -size / 2);
-    // Top face
-    makeFace(subdivisions, size, 'y', size / 2);
-    // Bottom face
-    makeFace(subdivisions, size, 'y', -size / 2);
 }
 
 
 /**
- * Helper function for makeCube() to tessellate a single face
+ * Create a signular (x, z) plane with subdivisions
  * @param {Integer} subdivisions Number of subdivisions along each cube face
  * @param {Float}   size    Diamater of the cube 
  * @param {String}  axis    What plane the face is on ('x', 'y' or 'z')
  * @param {Float}   value   The fixed value of the plane (can be + or -) 
  */
-function makeFace(subdivisions, size, axis, value){
+function makePlane(subdivisions, size, axis, value){
     // Subdivide face into smaller equal-sized squares based on subdivisions
     for (let y = 0; y < subdivisions; y++) {
         let pointY1 = -(size / 2) + (y / subdivisions) * size;

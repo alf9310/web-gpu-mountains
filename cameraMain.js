@@ -136,7 +136,7 @@ async function createMountain() {
   bary = [];
   
   // generate mountains (later based on parameters)
-  gradiantTrick ();
+  gradiantTrick();
 
   // create and bind vertex buffer
 
@@ -249,7 +249,7 @@ async function createMountain() {
       primitive: {
           topology: 'triangle-list', //<- MUST change to draw lines! 
           frontFace: 'cw', // this doesn't matter for lines
-          cullMode: 'back'
+          cullMode: 'none' // TODO might want to change this back to 'back' after debugging
       }
   };
 
