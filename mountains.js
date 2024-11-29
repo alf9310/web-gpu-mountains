@@ -22,9 +22,8 @@ function gradiantDescent () {
  * Layer perlin noise with progressively smaller attributes (Fractal Perlin Noise)
  * Also reduce detail in steaper areas with gradient descent calculation
  */
-function gradiantTrick () {
+function gradiantTrick (gridResolution) {
     // Generate intitial layer of perlin noise
-    gridResolution = 1;
     generatePerlinNoise(gridResolution, .5);
 
     //makePlane(10, .5, 'y', -.25);

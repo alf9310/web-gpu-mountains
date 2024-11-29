@@ -124,7 +124,7 @@ async function initProgram() {
  * Create and bind a new mountain object based on current settings
  * Mountain code defined in mountains.js
  */
-async function createMountain() {
+async function createMountain(division1) {
 
   console.log("inside create new mountain");
   // Call the functions in an appropriate order
@@ -136,7 +136,7 @@ async function createMountain() {
   bary = [];
   
   // generate mountains (later based on parameters)
-  gradiantTrick();
+  gradiantTrick(division1);
 
   // create and bind vertex buffer
 
