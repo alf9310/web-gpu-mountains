@@ -51,8 +51,8 @@ let perlin = new PerlinNoise()
 var division1 = 3;
 var division2 = 1;
 var updateDisplay = true;
-var anglesReset = [30.0, 30.0, 0.0, 0.0];
-var angles = [30.0, 30.0, 0.0, 0.0];
+var anglesReset = [50, -5, 0, 0];
+var angles = [50, -5, 0, 0];
 var angleInc = 5.0;
 
 // Shapes we can draw
@@ -127,7 +127,7 @@ async function initProgram() {
  * Create and bind a new mountain object based on current settings
  * Mountain code defined in mountains.js
  */
-async function createMountain(division1, division2) {
+async function createMountain(spec) {
 
   console.log("inside create new mountain");
   // Call the functions in an appropriate order
@@ -139,7 +139,8 @@ async function createMountain(division1, division2) {
   bary = [];
   
   // generate mountains (later based on parameters)
-  gradiantTrick(division1, division2);
+  //gradiantTrick(division1, division2);
+  generatePerlinNoise(spec.res, 1, spec.freq, spec.oct, spec.redst)
 
   // create and bind vertex buffer
 
@@ -388,8 +389,11 @@ async function init() {
   // Read, compile, and link your shaders
   await initProgram();
 
+    // Retrieve all sliders and register functions
+    //document.querySelectorAll("range").oninput = drawMountain();
+
   // create and bind your current object
-  await createMountain(division1, division2);
+  await createMountain(getMountainParams());
 
   // do a draw
   draw();

@@ -88,6 +88,23 @@
     <!-- keyboard functions -->
     <script type="text/javascript">
 
+        function getMountainParams() {
+            let spec = {}
+            spec.res = document.getElementById("resolutionSlider").value
+            spec.freq = document.getElementById("frequencySlider").value
+            spec.oct = document.getElementById("octaveSlider").value
+            spec.redst = document.getElementById("redistSlider").value
+
+            return spec
+        }
+
+        async function drawMountain() {
+            let spec = await getMountainParams()
+            await createMountain(spec);
+
+            draw();
+        }
+        
         async function gotKey(event) {
 
             var key = event.key;
@@ -107,18 +124,8 @@
                 angles[2] += angleInc;
 
             // shape selection (Change this to different parameters for mountain generation)
-            else if (key == '1' || key == 'c') {
-                curShape = CUBE;
-            }
-            else if (key == '2' || key == 'C') {
-                curShape = CYLINDER;
-            }
-            else if (key == '3' || key == 'n') {
-                curShape = CONE;
-            } else if (key == '4') {
-                curShape = COMPUTECUBE;
-            }
 
+            /*
             // tessellation control
             else if (key == '+') {
                 division1 = division1 + 1;
@@ -136,6 +143,7 @@
                     division2 = division2 - 1;
                 }
             }
+            */
 
             // reset
             else if (key == 'r' || key == 'R') {
@@ -145,7 +153,8 @@
             }
 
             // create a new shape and do a redo a draw
-            await createMountain(division1, division2);
+            let spec = await getMountainParams()
+            await createMountain(spec);
 
             draw();
         }
@@ -180,32 +189,28 @@
               <td>Rotate the current shape backward about the x, y, or z axis</td>
               </tr>
               <tr>
-              <td>1, c</td>
-              <td>Select the cube as the current shape (using current tessellation settings)</td>
+                <td>Resolution</td>
+                <td>
+                    <input type="range" oninput="drawMountain()" min="4" max="30" value="7" class="slider" step="1" id="resolutionSlider">
+                </td>
               </tr>
               <tr>
-              <td>2, C</td>
-              <td>Select the cylinder as the current shape (using current tessellation settings)</td>
+              <td>Frequency</td>
+              <td>
+                <input type="range" oninput="drawMountain()" min="0.5" max="10" value="1" class="slider" step="0.5" id="frequencySlider">
+              </td>
               </tr>
               <tr>
-              <td>3, n</td>
-              <td>Select the cone as the current shape (using current tessellation settings)</td>
+              <td>Octaves</td>
+              <td>
+                <input type="range" oninput="drawMountain()" min="1" max="5" value="3" class="slider" id="octaveSlider">
+              </td>
               </tr>
               <tr>
-              <td>4</td>
-              <td>Select the compute shader cube as the current shape (using current tessellation settings)</td>
-              </tr>
-              <tr>
-              <td>+, -</td>
-              <td>Increment/decrement the primary subdivision of the current shape by 1</td>
-              </tr>
-              <tr>
-              <td>=, _</td>
-              <td>Increment/decrement the secondary subdivision of the current shape by 1</td>
-              </tr>
-              <tr>
-              <td>r, R</td>
-              <td>Reset the figure to its original orientation</td>
+              <td>Redist</td>
+              <td>
+                <input type="range" oninput="drawMountain()" min="0.05" max="2" value=".5" step="0.05" class="slider" id="redistSlider">
+              </td>
               </tr>
               </tbody>
               </table>
