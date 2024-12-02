@@ -115,8 +115,6 @@
             // tessellation control
             else if (key == '+') {
                 division1 = division1 + 1;
-                // create a new shape and do a redo a draw
-                await createMountain(division1);
             }
             else if (key == '=') {
                 division2 = division2 + 1;
@@ -125,8 +123,6 @@
                 if (division1 > 1) {
                     division1 = division1 - 1;
                 }
-                // create a new shape and do a redo a draw
-                await createMountain(division1);
             }
             else if (key == '_') {
                 if (division2 > 1) {
@@ -140,6 +136,9 @@
                 angles[1] = anglesReset[1];
                 angles[2] = anglesReset[2];
             }
+
+            // create a new shape and do a redo a draw
+            await createMountain(division1, division2);
 
             draw();
         }

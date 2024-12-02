@@ -43,6 +43,7 @@ let myVertexBuffer = null;
 let myBaryBuffer = null;
 let myIndexBuffer = null;
 let uniformBuffer;
+let perlin = new PerlinNoise()
 
 // Other globals with default values;
 var division1 = 3;
@@ -124,7 +125,7 @@ async function initProgram() {
  * Create and bind a new mountain object based on current settings
  * Mountain code defined in mountains.js
  */
-async function createMountain(division1) {
+async function createMountain(division1, division2) {
 
   console.log("inside create new mountain");
   // Call the functions in an appropriate order
@@ -136,7 +137,7 @@ async function createMountain(division1) {
   bary = [];
   
   // generate mountains (later based on parameters)
-  gradiantTrick(division1);
+  gradiantTrick(division1, division2);
 
   // create and bind vertex buffer
 
@@ -249,7 +250,7 @@ async function createMountain(division1) {
       primitive: {
           topology: 'triangle-list', //<- MUST change to draw lines! 
           frontFace: 'cw', // this doesn't matter for lines
-          cullMode: 'none' // TODO might want to change this back to 'back' after debugging
+          cullMode: 'back' // TODO might want to change this back to 'back' after debugging
       }
   };
 

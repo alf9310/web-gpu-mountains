@@ -63,21 +63,34 @@ class PerlinNoise {
         const c = this.permutation[X + 1 + this.permutation[Y]];
         const d = this.permutation[X + 1 + this.permutation[Y + 1]];
 
+       /*
+        const a = this.permutation[X] + this.permutation[Y];
+        const b = this.permutation[X] + this.permutation[Y + 1];
+        const c = this.permutation[X + 1] + this.permutation[Y];
+        const d = this.permutation[X + 1] + this.permutation[Y + 1];
+        */
+
         // Blend contributions from each corner
         const x1 = this.lerp(this.grad(a, xf, yf), this.grad(c, xf - 1, yf), u);
         const x2 = this.lerp(this.grad(b, xf, yf - 1), this.grad(d, xf - 1, yf - 1), u);
-        return this.lerp(x1, x2, v); // Final noise value
+        
+        //return this.lerp(x1, x2, v); // Final noise value
+        return (this.lerp(x1, x2, v) + 1) / 2; // Final noise value normalized to [0, 1]
     }
 }
 
 
 /**
  * Generate an elevation for every (x,y) coordinate on the plane
- * @param {Int} gridResolution   Tesselation of the plane (level of detail)
+ * @param {Int}     gridResolution   Tesselation of the plane (level of detail)
+ * @param {Number}  size             Size of plane to generate
+ * @param {Number}  frequency        Frequency of perlin noise. Higher = more peaks
+ * @param {Int}     octaves          Adding octaves of perlin noise. Higher = more small hills
+ * @param {Number}  redist           Pushes or pulls middle elevations. Lower = more valleys
  */
-function generatePerlinNoise(gridResolution, size) {
+function generatePerlinNoise(gridResolution, size, frequency, octaves, redist) {
     // Create an instance of the PerlinNoise class (which creates a new permutation table)
-    const perlin = new PerlinNoise();
+    //const perlin = new PerlinNoise();
 
     // Grid parameters
     const min = -size/2; // Minimum value for x and z
@@ -95,10 +108,45 @@ function generatePerlinNoise(gridResolution, size) {
             const z1 = z0 + step;
 
             // Calculate heights (y values) using Perlin noise
-            const y0 = perlin.noise(x0, z0); // Bottom-left
-            const y1 = perlin.noise(x1, z0); // Bottom-right
-            const y2 = perlin.noise(x0, z1); // Top-left
-            const y3 = perlin.noise(x1, z1); // Top-right
+            let y0 = perlin.noise(x0 * frequency, z0 * frequency); // Bottom-left
+            let y1 = perlin.noise(x1 * frequency, z0 * frequency); // Bottom-right
+            let y2 = perlin.noise(x0 * frequency, z1 * frequency); // Top-left
+            let y3 = perlin.noise(x1 * frequency, z1 * frequency); // Top-right
+
+            let amplitudeSum = 0;
+
+            // TODO: current octave implementation is less than ideal since values are correlated. Rework perlin noise to use seeds.
+            for(let oct = octaves; oct > 1; oct--) {
+                y0 += 1/oct * perlin.noise(x0 * frequency * oct, z0 * frequency * oct);
+                y1 += 1/oct * perlin.noise(x1 * frequency * oct, z0 * frequency * oct);
+                y2 += 1/oct * perlin.noise(x0 * frequency * oct, z1 * frequency * oct);
+                y3 += 1/oct * perlin.noise(x1 * frequency * oct, z1 * frequency * oct);
+
+                amplitudeSum += 1/oct;
+            };
+            // keep y values in bounds
+            y0 /= amplitudeSum;
+            y1 /= amplitudeSum;
+            y2 /= amplitudeSum;
+            y3 /= amplitudeSum;
+            
+            // redistribution
+            y0 **= redist;
+            y1 **= redist;
+            y2 **= redist;
+            y3 **= redist;
+
+            // more bounds stuff (keeping below .5)
+            y0 *= 0.5;
+            y1 *= 0.5;
+            y2 *= 0.5;
+            y3 *= 0.5;
+
+            // correct bounds from [0, 1] to [-1, 1]
+            y0 = y0 * 2 - 1;
+            y1 = y1 * 2 - 1;
+            y2 = y2 * 2 - 1;
+            y3 = y3 * 2 - 1;
 
             // Add triangles for the current grid cell
             // Triangle 1: Bottom-left, Bottom-right, Top-left
