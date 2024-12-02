@@ -36,7 +36,9 @@ let verticesSize,
   points,
   uniformValues,
   uniformBindGroup,
-  indices;
+  indices,
+  imageSource,
+  texture;
 
 // buffers
 let myVertexBuffer = null;
@@ -221,7 +223,24 @@ async function createMountain(division1, division2) {
               binding: 0,
               visibility: GPUShaderStage.VERTEX,
               buffer: {}
-          }
+          },
+          // For textures
+          {
+            binding: 1,
+            visibility: GPUShaderStage.FRAGMENT,
+            sampler: {
+                type: "filtering",
+            },
+        },
+        {
+            binding: 2,
+            visibility: GPUShaderStage.FRAGMENT,
+            texture: {
+                sampleType: "float",
+                viewDimension: "2d",
+                multisampled: false,
+            },
+        }
       ]
   });
 
@@ -250,7 +269,7 @@ async function createMountain(division1, division2) {
       primitive: {
           topology: 'triangle-list', //<- MUST change to draw lines! 
           frontFace: 'cw', // this doesn't matter for lines
-          cullMode: 'back' // TODO might want to change this back to 'back' after debugging
+          cullMode: 'none' // TODO might want to change this back to 'back' after debugging
       }
   };
 
@@ -264,6 +283,27 @@ async function createMountain(division1, division2) {
   // copy the values from JavaScript to the GPU
   device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
 
+  // Render the texture
+  const url = './example-biome-lookup-smooth.png';
+  imageSource = await loadImageBitmap(url);
+  texture = device.createTexture({
+      label: "image",
+      format: 'rgba8unorm',
+      size: [imageSource.width, imageSource.height],
+      usage: GPUTextureUsage.TEXTURE_BINDING |
+          GPUTextureUsage.COPY_DST |
+          GPUTextureUsage.RENDER_ATTACHMENT,
+  });
+  
+  device.queue.copyExternalImageToTexture(
+      { source: imageSource, flipY: true },
+      { texture: texture },
+      { width: imageSource.width, height: imageSource.height, depthOrArrayLayers: 1 },
+  );
+
+  const samplerTex = device.createSampler();
+
+  // Bind values
   uniformBindGroup = device.createBindGroup({
       layout: pipeline.getBindGroupLayout(0),
       entries: [
@@ -271,9 +311,11 @@ async function createMountain(division1, division2) {
               binding: 0,
               resource: {
                   buffer: uniformBuffer,
-              },
+              }
           },
-      ],
+          { binding: 1, resource: samplerTex },
+          { binding: 2, resource: texture.createView() },
+      ]
   });
 
   // indicate a redraw is required.
@@ -347,8 +389,16 @@ async function init() {
   await initProgram();
 
   // create and bind your current object
-  await createMountain();
+  await createMountain(division1, division2);
 
   // do a draw
   draw();
+}
+
+// function obtained from:
+// https://webgpufundamentals.org/webgpu/lessons/webgpu-importing-textures.html
+async function loadImageBitmap(url) {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await createImageBitmap(blob, { colorSpaceConversion: 'none' });
 }
