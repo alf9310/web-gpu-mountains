@@ -22,12 +22,42 @@ function gradiantDescent () {
  * Layer perlin noise with progressively smaller attributes (Fractal Perlin Noise)
  * Also reduce detail in steaper areas with gradient descent calculation
  */
-function gradiantTrick (gridResolution, frequency) {
+function gradiantTrick(gridResolution, size, frequency, octaves, redist, perlin) {
     // Generate intitial layer of perlin noise
-    generatePerlinNoise(gridResolution, 1, frequency, 3, 0.3);
+    noise = generatePerlinNoise(gridResolution, size, frequency, octaves, redist, perlin);
+    console.log(noise);
 
-    //makePlane(10, .5, 'y', -.25);
+    // Grid parameters
+    const min = -size/2; // Minimum value for x and z
+    const max = size/2;  // Maximum value for x and z
+    const step = size / (gridResolution - 1); // Step size for each grid cell
 
+    // For every (z (row) & x(column)) value in noise, draw two triangles
+    for (let z = 0; z < gridResolution - 1; z++) {
+        // Calculate normalized z coordinates
+        const z0 = min + z * step;
+        const z1 = z0 + step;
+        for (let x = 0; x < gridResolution - 1; x++) {
+            // Calculate normalized x coordinates
+            const x0 = min + x * step;
+            const x1 = x0 + step;
+
+            // Get the y value from the noise array
+            const y0 = noise[x][z];
+            const y1 = noise[x + 1][z];
+            const y2 = noise[x][z + 1];
+            const y3 = noise[x + 1][z + 1];
+
+            // Add triangles for the current grid cell
+            // Triangle 1: Bottom-left, Bottom-right, Top-left
+            addTriangle(x0, y0, z0, x1, y1, z0, x0, y2, z1);
+
+            // Triangle 2: Bottom-right, Top-right, Top-left
+            addTriangle(x1, y1, z0, x1, y3, z1, x0, y2, z1);
+        }
+    }
+
+    // TODO
     // Find gradient at all points using gradient descent
     // Calculate influence of layer based on slope (1 / (1 + k * m)) (k controls pointyness, can use different formulas)
 
@@ -36,80 +66,6 @@ function gradiantTrick (gridResolution, frequency) {
     // Combine with previous layer 
     // Repeat 
 
-}
-
-
-/**
- * Create a signular (x, z) plane with subdivisions
- * @param {Integer} subdivisions Number of subdivisions along each cube face
- * @param {Float}   size    Diamater of the cube 
- * @param {String}  axis    What plane the face is on ('x', 'y' or 'z')
- * @param {Float}   value   The fixed value of the plane (can be + or -) 
- */
-function makePlane(subdivisions, size, axis, value){
-    // Subdivide face into smaller equal-sized squares based on subdivisions
-    for (let y = 0; y < subdivisions; y++) {
-        let pointY1 = -(size / 2) + (y / subdivisions) * size;
-        let pointY2 = -(size / 2) + ((y + 1) / subdivisions) * size;
-        for (let x = 0; x < subdivisions; x++) {
-            let pointX1 = -(size / 2) + (x / subdivisions) * size;
-            let pointX2 = -(size / 2) + ((x + 1) / subdivisions) * size;
-
-            // Split each resulting square into two triangles
-            // Modify points depending on face (axis and value)
-            // Needs a conditional for each face to keep them in the clockwise order
-            // (There's probably a more efficient way to do this...)
-            if (axis === 'z') { // Front or Back face
-                if (value < 0) { // Front face
-                    addTriangle(pointX1, pointY1, value,
-                                pointX2, pointY1, value,
-                                pointX2, pointY2, value);
-                    addTriangle(pointX2, pointY2, value,
-                                pointX1, pointY2, value,
-                                pointX1, pointY1, value);
-                } else { // Back face
-                    addTriangle(pointX1, pointY1, value,
-                                pointX1, pointY2, value,
-                                pointX2, pointY2, value);
-                    addTriangle(pointX2, pointY2, value,
-                                pointX2, pointY1, value,
-                                pointX1, pointY1, value);
-                }
-            } else if (axis === 'x') { // Right or Left face
-                if (value > 0) { // Right face
-                    addTriangle(value, pointY1, pointX1,
-                                value, pointY1, pointX2,
-                                value, pointY2, pointX2);
-                    addTriangle(value, pointY2, pointX2,
-                                value, pointY2, pointX1,
-                                value, pointY1, pointX1);
-                } else { // Left face
-                    addTriangle(value, pointY1, pointX1,
-                                value, pointY2, pointX1,
-                                value, pointY2, pointX2);
-                    addTriangle(value, pointY2, pointX2,
-                                value, pointY1, pointX2,
-                                value, pointY1, pointX1);
-                }
-            } else if (axis === 'y') { // Top or Bottom face
-                if (value > 0) { // Top face
-                    addTriangle(pointX1, value, pointY1,
-                                pointX2, value, pointY1,
-                                pointX2, value, pointY2);
-                    addTriangle(pointX2, value, pointY2,
-                                pointX1, value, pointY2,
-                                pointX1, value, pointY1);
-                } else { // Bottom face
-                    addTriangle(pointX1, value, pointY1,
-                                pointX1, value, pointY2,
-                                pointX2, value, pointY2);
-                    addTriangle(pointX2, value, pointY2,
-                                pointX2, value, pointY1,
-                                pointX1, value, pointY1);
-                }
-            }
-        }
-    }
 }
 
 function radians(degrees)

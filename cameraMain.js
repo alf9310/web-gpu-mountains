@@ -38,14 +38,14 @@ let verticesSize,
   uniformBindGroup,
   indices,
   imageSource,
-  texture;
+  texture,
+  perlin;
 
 // buffers
 let myVertexBuffer = null;
 let myBaryBuffer = null;
 let myIndexBuffer = null;
 let uniformBuffer;
-let perlin = new PerlinNoise()
 
 // Other globals with default values;
 var division1 = 3;
@@ -54,14 +54,6 @@ var updateDisplay = true;
 var anglesReset = [50, -5, 0, 0];
 var angles = [50, -5, 0, 0];
 var angleInc = 5.0;
-
-// Shapes we can draw
-// TODO, set up different parameters for thr mountain generation code
-var CUBE = 1;
-var CYLINDER = 2;
-var CONE = 3;
-var COMPUTECUBE = 4;
-var curShape = CUBE;
 
 /**
  * Set up shader variables
@@ -127,9 +119,7 @@ async function initProgram() {
  * Create and bind a new mountain object based on current settings
  * Mountain code defined in mountains.js
  */
-async function createMountain(spec) {
-
-  console.log("inside create new mountain");
+async function createMountain(spec, perlin) {
   // Call the functions in an appropriate order
   setShaderInfo();
 
@@ -138,12 +128,10 @@ async function createMountain(spec) {
   indices = [];
   bary = [];
   
-  // generate mountains (later based on parameters)
-  //gradiantTrick(division1, division2);
-  generatePerlinNoise(spec.res, 1, spec.freq, spec.oct, spec.redst)
+  // generate mountains based on set parameters
+  gradiantTrick(spec.res, 1, spec.freq, spec.oct, spec.redst, perlin);
 
   // create and bind vertex buffer
-
   // set up the attribute we'll use for the vertices
   const vertexAttribDesc = {
       shaderLocation: 0, // @location(0) in vertex shader
@@ -327,9 +315,6 @@ async function createMountain(spec) {
  * Render our canvas
  */
 function draw() {
-  //console.log("inside draw");
-  //console.log("angles: " + angles[0] + " " +angles[1] + " " + angles[2]);
-
   // set up color info
   colorTexture = context.getCurrentTexture();
   colorTextureView = colorTexture.createView();
@@ -389,11 +374,11 @@ async function init() {
   // Read, compile, and link your shaders
   await initProgram();
 
-    // Retrieve all sliders and register functions
-    //document.querySelectorAll("range").oninput = drawMountain();
+  // Create an instance of the PerlinNoise class (which creates a new permutation table)
+  perlin = new PerlinNoise();
 
   // create and bind your current object
-  await createMountain(getMountainParams());
+  await createMountain(getMountainParams(), perlin);
 
   // do a draw
   draw();

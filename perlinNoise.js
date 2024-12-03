@@ -63,18 +63,10 @@ class PerlinNoise {
         const c = this.permutation[X + 1 + this.permutation[Y]];
         const d = this.permutation[X + 1 + this.permutation[Y + 1]];
 
-       /*
-        const a = this.permutation[X] + this.permutation[Y];
-        const b = this.permutation[X] + this.permutation[Y + 1];
-        const c = this.permutation[X + 1] + this.permutation[Y];
-        const d = this.permutation[X + 1] + this.permutation[Y + 1];
-        */
-
         // Blend contributions from each corner
         const x1 = this.lerp(this.grad(a, xf, yf), this.grad(c, xf - 1, yf), u);
         const x2 = this.lerp(this.grad(b, xf, yf - 1), this.grad(d, xf - 1, yf - 1), u);
-        
-        //return this.lerp(x1, x2, v); // Final noise value
+
         return (this.lerp(x1, x2, v) + 1) / 2; // Final noise value normalized to [0, 1]
     }
 }
@@ -82,97 +74,59 @@ class PerlinNoise {
 
 /**
  * Generate an elevation for every (x,y) coordinate on the plane
- * @param {Int}     gridResolution   Tesselation of the plane (level of detail)
- * @param {Number}  size             Size of plane to generate
- * @param {Number}  frequency        Frequency of perlin noise. Higher = more peaks
- * @param {Int}     octaves          Adding octaves of perlin noise. Higher = more small hills
- * @param {Number}  redist           Pushes or pulls middle elevations. Lower = more valleys
+ * @param {Int}             gridResolution   Tesselation of the plane (level of detail)
+ * @param {Number}          size             Size of plane to generate
+ * @param {Number}          frequency        Frequency of perlin noise. Higher = more peaks
+ * @param {Int}             octaves          Adding octaves of perlin noise. Higher = more small hills
+ * @param {Number}          redist           Pushes or pulls middle elevations. Lower = more valleys
+ * @param {PerlinNoise}     perlin           The permutation table of noise (acts as the 'seed')
  */
-function generatePerlinNoise(gridResolution, size, frequency, octaves, redist) {
-    // Create an instance of the PerlinNoise class (which creates a new permutation table)
-    //const perlin = new PerlinNoise();
+function generatePerlinNoise(gridResolution, size, frequency, octaves, redist, perlin) {
+    // A 2d array to store the perlin noise y values (z values are rows and x values are columns)
+    let noise = [];
 
     // Grid parameters
     const min = -size/2; // Minimum value for x and z
     const max = size/2;  // Maximum value for x and z
     const step = (max - min) / (gridResolution); // Step size for each grid cell
 
-    // Iterate over the grid to generate triangles
-    for (let x = 0; x < gridResolution; x++) {
+    // Iterate over the grid to generate noise
+    for (let z = 0; z < gridResolution; z++) {
         // Calculate normalized z coordinates
-        const x0 = min + x * step;
-        const x1 = x0 + step;
-        for (let z = 0; z < gridResolution; z++) {
+        const z0 = min + z * step;
+        let noisez = [];
+        for (let x = 0; x < gridResolution; x++) {
             // Calculate normalized (x, z) coordinates
-            const z0 = min + z * step;
-            const z1 = z0 + step;
+            const x0 = min + x * step;
 
             // Calculate heights (y values) using Perlin noise
-            let y0 = perlin.noise(x0 * frequency, z0 * frequency); // Bottom-left
-            let y1 = perlin.noise(x1 * frequency, z0 * frequency); // Bottom-right
-            let y2 = perlin.noise(x0 * frequency, z1 * frequency); // Top-left
-            let y3 = perlin.noise(x1 * frequency, z1 * frequency); // Top-right
+            let y0 = perlin.noise(x0 * frequency, z0 * frequency);
 
             let amplitudeSum = 0;
 
             // TODO: current octave implementation is less than ideal since values are correlated. Rework perlin noise to use seeds.
             for(let oct = octaves; oct > 1; oct--) {
                 y0 += 1/oct * perlin.noise(x0 * frequency * oct, z0 * frequency * oct);
-                y1 += 1/oct * perlin.noise(x1 * frequency * oct, z0 * frequency * oct);
-                y2 += 1/oct * perlin.noise(x0 * frequency * oct, z1 * frequency * oct);
-                y3 += 1/oct * perlin.noise(x1 * frequency * oct, z1 * frequency * oct);
 
                 amplitudeSum += 1/oct;
             };
             // keep y values in bounds
             y0 /= amplitudeSum;
-            y1 /= amplitudeSum;
-            y2 /= amplitudeSum;
-            y3 /= amplitudeSum;
             
             // redistribution
             y0 **= redist;
-            y1 **= redist;
-            y2 **= redist;
-            y3 **= redist;
 
             // more bounds stuff (keeping below .5)
             y0 *= 0.5;
-            y1 *= 0.5;
-            y2 *= 0.5;
-            y3 *= 0.5;
 
             // correct bounds from [0, 1] to [-1, 1]
             y0 = y0 * 2 - 1;
-            y1 = y1 * 2 - 1;
-            y2 = y2 * 2 - 1;
-            y3 = y3 * 2 - 1;
 
-            // Add triangles for the current grid cell
-            // Triangle 1: Bottom-left, Bottom-right, Top-left
-            addTriangle(x0, y0, z0, x1, y1, z0, x0, y2, z1);
-
-            // Triangle 2: Bottom-right, Top-right, Top-left
-            addTriangle(x1, y1, z0, x1, y3, z1, x0, y2, z1);
+            // Append a y point for each x value
+            noisez.push(y0);
         }
+        // Append a row for each z value
+        noise.push(noisez);
     }
-
-    // Polynomial tile function (Noise function): 
-    // N(x,z) = fᵢⱼ(x,z) (i,j)=[x,z]
-    // fᵢⱼ(x,z) =   aᵢⱼ + 
-    //              (bᵢⱼ-aᵢⱼ) * S(x-i) + 
-    //              (cᵢⱼ-aᵢⱼ) * S(z-j) +
-    //              (aᵢⱼ-bᵢⱼ-cᵢⱼ+dᵢⱼ) * S(z-j) * S(z-j)
-    // Smoothstep function:
-    // S(λ) = 3λ² - 2λ³
-    // a, b, c & d is the y value at each corner
-    // Ensures connectivity (bᵢ-₁,ⱼ = cᵢ,ⱼ-₁ = dᵢ-₁,ⱼ-₁ = aᵢ,ⱼ)
-    // Also forces edges to be smooth (same dirivatives)
-
-    // Hash x,y,z into a table index to access the table
-    // Evaluate a wavelet with a randomized gradient at each point:
-    //  Get the distance from the current location to each grid coordinate of the cell it’s in
-    //  Calculate the dot products of the distance and gradient vectors
-    //  Interpolate (blend) the dot products using a function
-    //  that has a zero first derivative and possibly second derivative at both endpoints.
+    return noise;
 }

@@ -90,17 +90,17 @@
 
         function getMountainParams() {
             let spec = {}
-            spec.res = document.getElementById("resolutionSlider").value
-            spec.freq = document.getElementById("frequencySlider").value
-            spec.oct = document.getElementById("octaveSlider").value
-            spec.redst = document.getElementById("redistSlider").value
+            spec.res = document.getElementById("resolutionSlider").value;
+            spec.freq = document.getElementById("frequencySlider").value;
+            spec.oct = document.getElementById("octaveSlider").value;
+            spec.redst = document.getElementById("redistSlider").value;
 
             return spec
         }
 
         async function drawMountain() {
-            let spec = await getMountainParams()
-            await createMountain(spec);
+            let spec = await getMountainParams();
+            await createMountain(spec, perlin);
 
             draw();
         }
@@ -123,28 +123,6 @@
             else if (key == 'Z')
                 angles[2] += angleInc;
 
-            // shape selection (Change this to different parameters for mountain generation)
-
-            /*
-            // tessellation control
-            else if (key == '+') {
-                division1 = division1 + 1;
-            }
-            else if (key == '=') {
-                division2 = division2 + 1;
-            }
-            else if (key == '-') {
-                if (division1 > 1) {
-                    division1 = division1 - 1;
-                }
-            }
-            else if (key == '_') {
-                if (division2 > 1) {
-                    division2 = division2 - 1;
-                }
-            }
-            */
-
             // reset
             else if (key == 'r' || key == 'R') {
                 angles[0] = anglesReset[0];
@@ -152,10 +130,7 @@
                 angles[2] = anglesReset[2];
             }
 
-            // create a new shape and do a redo a draw
-            let spec = await getMountainParams()
-            await createMountain(spec);
-
+            // Redo a draw
             draw();
         }
 
