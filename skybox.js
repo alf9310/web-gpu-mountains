@@ -28,12 +28,27 @@ let cameraPositionValue,
     vertexData,
     viewValue,
     viewDirectionProjectionInverseValue,
-    worldValue;
+    worldValue,
+    perlin,
+    lastSpec,
+    realtime;
 
 let cameraTarget = [0, 0, 0]
 let cameraTranslation = [5, 3, -5]; // Initial camera position
 let angleInc = 1;
+lastSpec = null
 
+function getMountainParams() {
+  let spec = {}
+  spec.res = document.getElementById("resolutionSlider").value;
+  spec.freq = document.getElementById("frequencySlider").value;
+  spec.oct = document.getElementById("octaveSlider").value;
+  spec.redst = document.getElementById("redistSlider").value;
+  //spec.height = document.getElementById("heightSlider").value;
+  //console.log("CALLED")
+
+  return spec
+}
 
 // -------------------------- Helper Function for Creating a Cube --------------------------
 function createCubeVertices() {
@@ -584,22 +599,19 @@ export async function initProgram() {
 
   // Create cube
   // generate noise
-  let perlin = new PerlinNoise();
+  perlin = new PerlinNoise();
 
   // temp spec
-  let spec = {
-    res: 1,
-    freq: 1,
-    oct: 1,
-    redst: 1
-  };
+  let spec = getMountainParams()
 
   let noise = gradiantTrick(spec.res, 1, spec.freq, spec.oct, spec.redst, perlin);
 
   [vertexData, indexData, numVertices] = noiseToFace(noise);
+  /*
   console.log("vertexData: " + vertexData);
   console.log("indexData: " + indexData);
   console.log("numVertices: " + numVertices);
+  */
 
   vertexBuffer = device.createBuffer({
     label: 'vertex buffer vertices',
@@ -665,6 +677,33 @@ export function setCameraPosition(x, y, z){
 
 // -------------------------- Render Function --------------------------
 export function render() {
+  // temp spec
+  if (realtime = true) {
+    let spec = getMountainParams()
+    if (spec != lastSpec) {
+      let noise = gradiantTrick(spec.res, 1, spec.freq, spec.oct, spec.redst, perlin);
+
+      [vertexData, indexData, numVertices] = noiseToFace(noise);
+
+
+      vertexBuffer = device.createBuffer({
+        label: 'vertex buffer vertices',
+        size: vertexData.byteLength,
+        usage: GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+      });
+      device.queue.writeBuffer(vertexBuffer, 0, vertexData);
+
+      indexBuffer = device.createBuffer({
+        label: 'index buffer',
+        size: vertexData.byteLength,
+        usage: GPUBufferUsage.INDEX | GPUBufferUsage.COPY_DST,
+      });
+
+      device.queue.writeBuffer(indexBuffer, 0, indexData);
+      lastSpec = spec
+    }
+  }
+
   //time *= 0.001;
 
   // Get the current texture from the canvas context and
@@ -727,6 +766,7 @@ export function render() {
   mat4.rotateX(worldValue, time * -0.1, worldValue);
   mat4.rotateY(worldValue, time * -0.2, worldValue);
   */
+ 
 
   // Upload the uniform values to the uniform buffers
   device.queue.writeBuffer(envMapUniformBuffer, 0, envMapUniformValues);

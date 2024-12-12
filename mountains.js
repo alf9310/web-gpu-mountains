@@ -81,7 +81,7 @@ export function gradiantTrick(gridResolution, size, frequency, layers, redist, p
             noise[r][c] = noise[r][c] * 2 - 1
         }
     }
-    console.log(max)
+    //console.log(max)
 
     return noise;
 }

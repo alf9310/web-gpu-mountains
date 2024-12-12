@@ -2,7 +2,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skybox WebGPU</title>
+    <title>Mountains!!!</title>
     <style>
         body {
             margin: 0;
@@ -16,10 +16,65 @@
     </style>
 </head>
 <body>
-    <canvas id="webgpuCanvas"></canvas>
-    
-    <!-- Call the main function from the skybox.js file -->
     <script type="module" src="./skybox.js"></script>
+    <h1>CSCI-510: Mountains</h1>
+    Move the sliders at your own risk. Performance got REALLY BAD when time started running out... maybe just don't touch resolution.
+    We've also packaged up an older version with rotation and mountain generation working wonderfull, but a less sophisticated pipeline
+    (but who's to say since it runs better). Check it out, it's actually pretty fun to mess with!
+    <table>
+        <tr>
+            <td>
+                <h3>Controls</h3>
+                
+                <table border="1">
+                <tbody>
+                <tr>
+                <td>left and right arrows</td>
+                <td>rotate!</td>
+                </tr>
+                <tr>
+                <td>w, s</td>
+                <td>move up and down</td>
+                </tr>
+                <tr>
+                  <td>Resolution</td>
+                  <td>
+                      <input type="range" min="10" max="100" value="5" class="slider" step="5" id="resolutionSlider">
+                  </td>
+                </tr>
+                <tr>
+                <td>Frequency</td>
+                <td>
+                  <input type="range" min="0.5" max="10" value="1" class="slider" step="0.5" id="frequencySlider">
+                </td>
+                </tr>
+                <tr>
+                <td>Octaves</td>
+                <td>
+                  <input type="range" min="2" max="10" value="3" class="slider" id="octaveSlider">
+                </td>
+                </tr>
+                <tr>
+                <td>Redist</td>
+                <td>
+                  <input type="range" min="0.05" max="1" value=".5" step="0.05" class="slider" id="redistSlider">
+                </td>
+                </tr>
+                <tr>
+                </tr>
+                </tbody>
+                </table>
+                
+            </td>
+            <td><canvas id="webgpuCanvas" width="800" height="800">
+                Your browser does not support the HTML5 canvas element.
+              </canvas></td>
+        </tr>
+    </table>
+    <!--<canvas id="webgpuCanvas"></canvas>-->
+
+    <!-- Call the main function from the skybox.js file -->
+    
 
 </body>
 </html>
