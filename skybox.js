@@ -1,5 +1,5 @@
 // see https://webgpufundamentals.org/webgpu/lessons/webgpu-utils.html#wgpu-matrix
-import {mat4} from 'https://webgpufundamentals.org/3rdparty/wgpu-matrix.module.js';
+import {mat4, vec3} from 'https://webgpufundamentals.org/3rdparty/wgpu-matrix.module.js';
 
 // ------------- Global Vars --------------
 let cameraPositionValue,
@@ -26,7 +26,7 @@ let cameraPositionValue,
     viewDirectionProjectionInverseValue,
     worldValue;
 
-let cameraTranslation = [5, 0, -5]; // Initial camera position
+let cameraTranslation = [5, 3, -5]; // Initial camera position
 let angleInc = 1;
 
 
@@ -635,6 +635,7 @@ export function render() {
   const commandBuffer = encoder.finish();
   device.queue.submit([commandBuffer]);
 
+  // recursive call (keep rendering frames)
   requestAnimationFrame(render);
 }
 
@@ -642,19 +643,40 @@ function fail(msg) {
   alert(msg);
 }
 
+function rotateCamera(distance) {
+  cameraTranslation = vec3.rotateY(cameraTranslation, [0, 0, 0], distance)
+  //cameraTranslation = vec3.rotateX(cameraTranslation, [0, 0, 0], 0.05)
+  //cameraTranslation = vec3.add([1, 0, 0], cameraTranslation)
+  /*
+  viewValue.set(mat4.lookAt(
+    cameraTranslation,
+    [0, 0, 0],  // target
+    [0, 1, 0],  // up
+  ));
+  */
+}
+function moveCamera(x, y, z) {
+  cameraTranslation = vec3.add(cameraTranslation, [x, y, z])
+
+  // bounds checking
+  if (cameraTranslation[1] > 5) {cameraTranslation[1] = 5}
+  if (cameraTranslation[1] < -1) {cameraTranslation[1] = -1}
+}
+
 function gotKey(event) {
 
   var key = event.key;
 
   //  incremental rotation
-  if (key == 'x'){
-    cameraTranslation[0] -= angleInc; 
-  }else if (key == 'y')
-      angles[1] -= angleInc;
-  else if (key == 'z')
-      angles[2] -= angleInc;
-  else if (key == 'X')
-      angles[0] += angleInc;
+  if (key == 'ArrowRight'){
+    //cameraTranslation[0] -= angleInc; 
+    rotateCamera(0.025)
+  }else if (key == 'ArrowLeft')
+    rotateCamera(-0.025)
+  else if (key == 'w')
+    moveCamera(0, 0.1, 0)
+  else if (key == 's')
+    moveCamera(0, -0.1, 0)
   else if (key == 'Y')
       angles[1] += angleInc;
   else if (key == 'Z')
