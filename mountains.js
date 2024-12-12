@@ -89,57 +89,12 @@ function gradiantTrick(gridResolution, size, frequency, layers, redist, perlin) 
     }
     console.log(max)
 
-    /*
-    // min-max normalize 
-    for (let r = 0; r < noise.length; r++) {
-        for (let c = 0; c < noise[r].length; c++) {
-            noise[r][c] = ((noise[r][c] - min) * (max - min))
-            //console.log(noise[r][c])
-        }
-    }
-        */
-
-
     return noise;
 }
-    // NOISE TO TRIS
-    // For every (z (row) & x(column)) value in noise, draw two triangles
-    /*
-    for (let z = 0; z < gridResolution - 1; z++) {
-        // Calculate normalized z coordinates
-        const z0 = min + z * step;
-        const z1 = z0 + step;
-        for (let x = 0; x < gridResolution - 1; x++) {
-            // Calculate normalized x coordinates
-            const x0 = min + x * step;
-            const x1 = x0 + step;
 
-            // Get the y value from the noise array
-            const y0 = noise[x    ][z    ];
-            const y1 = noise[x + 1][z    ];
-            const y2 = noise[x    ][z + 1];
-            const y3 = noise[x + 1][z + 1];
-
-            // Add triangles for the current grid cell
-            // Triangle 1: Bottom-left, Bottom-right, Top-left
-            addTriangle(x0, y0, z0, x1, y1, z0, x0, y2, z1);
-
-            // Triangle 2: Bottom-right, Top-right, Top-left
-            addTriangle(x1, y1, z0, x1, y3, z1, x0, y2, z1);
-        }
-    }
-        */
-
-    // TODO
-    // Find gradient at all points using gradient descent
-    // Calculate influence of layer based on slope (1 / (1 + k * m)) (k controls pointyness, can use different formulas)
-
-    // Generate second layer of noise and it's gradients
-    // Sum gradients with prevous layer's gradients ( keep running sum ) to calculate influence of layer
-    // Combine with previous layer 
-    // Repeat 
 
 function layerToTris(layer) {
+    console.log(layer);
     // Grid parameters
     const min = -1/2; // Minimum value for x and z
     const max = 1/2;  // Maximum value for x and z
