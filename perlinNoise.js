@@ -6,7 +6,7 @@
  * @author Gabe Frahm <gjf9639@rit.edu>
  */
 
-class PerlinNoise {
+export default class PerlinNoise {
     constructor() {
         this.permutation = this.generatePermutation();
     }
@@ -81,7 +81,7 @@ class PerlinNoise {
  * @param {Number}          redist           Pushes or pulls middle elevations. Lower = more valleys
  * @param {PerlinNoise}     perlin           The permutation table of noise (acts as the 'seed')
  */
-function generateNoiseLayer(gridResolution, size, frequency, perlin) {
+export function generateNoiseLayer(gridResolution, size, frequency, perlin) {
     // A 2d array to store the perlin noise y values (z values are rows and x values are columns)
     let noise = [];
 

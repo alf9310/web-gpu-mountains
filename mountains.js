@@ -9,6 +9,8 @@
  * @author Gabe Frahm <gjf9639@rit.edu>
  */
 
+import PerlinNoise from './perlinNoise.js';
+import {generateNoiseLayer} from './perlinNoise.js';
 
 /**
  * Layer perlin noise with progressively smaller attributes (Fractal Perlin Noise)
@@ -82,4 +84,81 @@ export function gradiantTrick(gridResolution, size, frequency, layers, redist, p
     console.log(max)
 
     return noise;
+}
+
+
+function layerToTris(layer) {
+    console.log(layer);
+    // Grid parameters
+    const min = -1/2; // Minimum value for x and z
+    const max = 1/2;  // Maximum value for x and z
+    const step = 1 / (layer.length - 1); // Step size for each grid cell
+
+    for (let z = 0; z < layer.length - 1; z++) {
+        // Calculate normalized z coordinates
+        const z0 = min + z * step;
+        const z1 = z0 + step;
+        for (let x = 0; x < layer.length - 1; x++) {
+            // Calculate normalized x coordinates
+            const x0 = min + x * step;
+            const x1 = x0 + step;
+
+            // Get the y value from the noise array
+            const y0 = layer[x    ][z    ];
+            const y1 = layer[x + 1][z    ];
+            const y2 = layer[x    ][z + 1];
+            const y3 = layer[x + 1][z + 1];
+
+            // Add triangles for the current grid cell
+            // Triangle 1: Bottom-left, Bottom-right, Top-left
+            addTriangle(x0, y0, z0, x1, y1, z0, x0, y2, z1);
+
+            // Triangle 2: Bottom-right, Top-right, Top-left
+            addTriangle(x1, y1, z0, x1, y3, z1, x0, y2, z1);
+        }
+    }
+}
+
+
+function radians(degrees)
+{
+  var pi = Math.PI;
+  return degrees * (pi/180);
+}
+
+/**
+ * Adds a triangle to the scene in a clockwise order
+ * @param {*} x0 
+ * @param {*} y0 
+ * @param {*} z0 
+ * @param {*} x1 
+ * @param {*} y1 
+ * @param {*} z1 
+ * @param {*} x2 
+ * @param {*} y2 
+ * @param {*} z2 
+ */
+function addTriangle (x0,y0,z0,x1,y1,z1,x2,y2,z2) {
+    var nverts = points.length / 3;
+    
+    // push first vertex
+    points.push(x0);  bary.push (1.0);
+    points.push(y0);  bary.push (0.0);
+    points.push(z0);  bary.push (0.0);
+    indices.push(nverts);
+    nverts++;
+    
+    // push second vertex
+    points.push(x1); bary.push (0.0);
+    points.push(y1); bary.push (1.0);
+    points.push(z1); bary.push (0.0);
+    indices.push(nverts);
+    nverts++
+    
+    // push third vertex
+    points.push(x2); bary.push (0.0);
+    points.push(y2); bary.push (0.0);
+    points.push(z2); bary.push (1.0);
+    indices.push(nverts);
+    nverts++;
 }

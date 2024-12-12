@@ -3,6 +3,8 @@ import {mat4, vec3} from 'https://webgpufundamentals.org/3rdparty/wgpu-matrix.mo
 
 import { gradiantTrick } from './mountains.js';
 
+import PerlinNoise from './perlinNoise.js';
+
 // ------------- Global Vars --------------
 let cameraPositionValue,
     canvas, 
@@ -582,6 +584,16 @@ export async function initProgram() {
 
   // Create cube
   // generate noise
+  let perlin = new PerlinNoise();
+
+  // temp spec
+  let spec = {
+    res: 1,
+    freq: 1,
+    oct: 1,
+    redst: 1
+  };
+
   let noise = gradiantTrick(spec.res, 1, spec.freq, spec.oct, spec.redst, perlin);
 
   [vertexData, indexData, numVertices] = noiseToFace(noise);
