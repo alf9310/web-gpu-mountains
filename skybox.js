@@ -26,6 +26,7 @@ let cameraPositionValue,
     viewDirectionProjectionInverseValue,
     worldValue;
 
+let cameraTarget = [0, 0, 0]
 let cameraTranslation = [5, 3, -5]; // Initial camera position
 let angleInc = 1;
 
@@ -809,7 +810,7 @@ export function render() {
 
   const view = mat4.lookAt(
     cameraPositionValue,
-    [0, 0, 0],  // target
+    cameraTarget,  // target
     [0, 1, 0],  // up
   );
 
@@ -862,16 +863,7 @@ function fail(msg) {
 }
 
 function rotateCamera(distance) {
-  cameraTranslation = vec3.rotateY(cameraTranslation, [0, 0, 0], distance)
-  //cameraTranslation = vec3.rotateX(cameraTranslation, [0, 0, 0], 0.05)
-  //cameraTranslation = vec3.add([1, 0, 0], cameraTranslation)
-  /*
-  viewValue.set(mat4.lookAt(
-    cameraTranslation,
-    [0, 0, 0],  // target
-    [0, 1, 0],  // up
-  ));
-  */
+  cameraTranslation = vec3.rotateY(cameraTranslation, cameraTarget, distance)
 }
 function moveCamera(x, y, z) {
   cameraTranslation = vec3.add(cameraTranslation, [x, y, z])
@@ -895,16 +887,29 @@ function gotKey(event) {
     moveCamera(0, 0.1, 0)
   else if (key == 's')
     moveCamera(0, -0.1, 0)
-  else if (key == 'Y')
-      angles[1] += angleInc;
-  else if (key == 'Z')
-      angles[2] += angleInc;
 
-  // reset
+  // Move forwards and backwards
+  else if (key == 'n') {
+    cameraTarget = vec3.add(cameraTarget, [1, 0, 0])
+    moveCamera(1, 0, 0)
+  }
+  else if (key == 'N') {
+    cameraTarget = vec3.add(cameraTarget, [-1, 0, 0])
+    moveCamera(-1, 0, 0)
+  }
+  else if (key == 'm') {
+    cameraTarget = vec3.add(cameraTarget, [0, 0, 1])
+    moveCamera(0, 0, 1)
+  }
+  else if (key == 'M') {
+    cameraTarget = vec3.add(cameraTarget, [0, 0, -1])
+    moveCamera(0, 0, -1)
+  }
+
+  // reset to initial camera position
   else if (key == 'r' || key == 'R') {
-      angles[0] = anglesReset[0];
-      angles[1] = anglesReset[1];
-      angles[2] = anglesReset[2];
+    cameraTarget = [0, 0, 0]
+    cameraTranslation = [5, 3, -5]
   }
 
   // redo the draw
