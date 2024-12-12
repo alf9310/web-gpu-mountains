@@ -1,6 +1,8 @@
 // see https://webgpufundamentals.org/webgpu/lessons/webgpu-utils.html#wgpu-matrix
 import {mat4, vec3} from 'https://webgpufundamentals.org/3rdparty/wgpu-matrix.module.js';
 
+import { gradiantTrick } from './mountains.js';
+
 // ------------- Global Vars --------------
 let cameraPositionValue,
     canvas, 
@@ -87,7 +89,7 @@ function createCubeVertices() {
 
 
 // Helper function to create a single square's vertices
-function createSquareVertices(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4) {
+function createSquareVertices(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4, squareNumber) {
   // Calculate the normal vector for the square (assuming planar)
   const ux = x2 - x1, uy = y2 - y1, uz = z2 - z1;
   const vx = x3 - x1, vy = y3 - y1, vz = z3 - z1;
@@ -109,9 +111,10 @@ function createSquareVertices(x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4) {
     x4, y4, z4,         normalizedNx, normalizedNy, normalizedNz,
   ]);
 
+  const base = 4 * squareNumber;
   const indexData = new Uint16Array([
-    0, 1, 2,  // First triangle
-    2, 3, 0,  // Second triangle
+      base, base + 1, base + 2,  // First triangle
+      base + 2, base + 1, base + 3,  // Second triangle
   ]);
 
   return [
@@ -131,6 +134,9 @@ function noiseToFace(noise) {
   const max = 1/2;  // Maximum value for x and z
   const step = 1 / (noise.length - 1); // Step size for each grid cell
 
+  // Count the number of squares drawn
+  let squareNumber = 0;
+
   for (let z = 0; z < noise.length - 1; z++) {
       // Calculate normalized z coordinates
       const z0 = min + z * step;
@@ -147,7 +153,7 @@ function noiseToFace(noise) {
           const y3 = noise[x + 1][z + 1];
 
           // Create square vertices for the current grid cell
-          const [vertexData, indexData, numVertices] = createSquareVertices(x0, y0, z1, x0, y1, z0, x1, y2, z1, x1, y3, z0);
+          const [vertexData, indexData, numVertices] = createSquareVertices(x0, y2, z1, x0, y0, z0, x1, y3, z1, x1, y1, z0, squareNumber);
           
           // Expand the Float32Array and Uint16Array
           const newVertexDataFace = new Float32Array(vertexDataFace.length + vertexData.length);
@@ -161,6 +167,8 @@ function noiseToFace(noise) {
           indexDataFace = newIndexDataFace;
 
           numVerticesFace += numVertices;
+          
+          squareNumber += 1;
       }
   }
   return [
@@ -169,8 +177,6 @@ function noiseToFace(noise) {
     numVerticesFace,
   ];
 }
-
-
 
 
 // -------------------------- Main Function --------------------------
@@ -312,7 +318,7 @@ export async function initProgram() {
       targets: [{ format: presentationFormat }],
     },
     primitive: {
-      cullMode: 'back',
+      cullMode: 'none',
     },
     depthStencil: {
       depthWriteEnabled: true,
@@ -575,130 +581,8 @@ export async function initProgram() {
       kCameraPositionOffset, kCameraPositionOffset + 3);
 
   // Create cube
-  const noise = [
-      [
-          0.04880884817015163,
-          0.051000285442396986,
-          0.030618455103536446,
-          0.0010106892536163592,
-          -0.012748461637055675,
-          0,
-          0.022536454117896065,
-          0.04199193854847061,
-          0.03906265451126667,
-          0.016982202400809054
-      ],
-      [
-          0.009395858917600197,
-          0.008858049527286083,
-          -0.01196473792480468,
-          -0.03800642410460975,
-          -0.04167694519228016,
-          -0.014310393683691136,
-          0.022052596251288747,
-          0.05016228256017663,
-          0.04887269728218202,
-          0.021102269980828314
-      ],
-      [
-          -0.0437782683916873,
-          -0.053025849628407284,
-          -0.06864691285850122,
-          -0.07385197098519936,
-          -0.05202292726458835,
-          -0.008290365076551232,
-          0.03899364257535276,
-          0.07332255276407951,
-          0.07237835591735053,
-          0.03879046661778718
-      ],
-      [
-          -0.09543380562835535,
-          -0.11791016323279191,
-          -0.12613646290052827,
-          -0.1020073882531104,
-          -0.0493359924936676,
-          0.0082221977322261,
-          0.06212090117086011,
-          0.0998667020325692,
-          0.09855022518226253,
-          0.060566442825719324
-      ],
-      [
-          -0.11868280398031483,
-          -0.15211146634477946,
-          -0.1593976877880955,
-          -0.12008217750974037,
-          -0.0506092289136153,
-          0.01410847546009597,
-          0.07110505449278892,
-          0.11034739425821138,
-          0.10860168593052388,
-          0.06814596707378895
-      ],
-      [
-          -0.10557280900008414,
-          -0.14289417222842316,
-          -0.15949919690698688,
-          -0.1301899057840269,
-          -0.06526238975849485,
-          0,
-          0.05834890277261584,
-          0.09834493671159605,
-          0.09646413530037545,
-          0.054987393289607
-      ],
-      [
-          -0.07710022212593415,
-          -0.11316268289612441,
-          -0.13806598682265714,
-          -0.12566411184716875,
-          -0.0748761967563476,
-          -0.014310393683691136,
-          0.0419822448237781,
-          0.07955450888966231,
-          0.07591974457577444,
-          0.03380045115099439
-      ],
-      [
-          -0.039366875440993265,
-          -0.06446357106951739,
-          -0.0829380640850913,
-          -0.08105799073935027,
-          -0.052230547392457805,
-          -0.008290365076551232,
-          0.03522496959066812,
-          0.062406879977723095,
-          0.055711318116842046,
-          0.017642800609329656
-      ],
-      [
-          -0.01461885546759123,
-          -0.02449079566413115,
-          -0.025757823487404075,
-          -0.023434414892681166,
-          -0.013861843804834795,
-          0.0082221977322261,
-          0.03378145503196173,
-          0.05188515875070698,
-          0.0507738187526372,
-          0.028126019482047626
-      ],
-      [
-          -0.006710515509199544,
-          -0.006685821206603326,
-          0.005373312619745274,
-          0.011039183161562827,
-          0.009043156991810797,
-          0.01410847546009597,
-          0.026251125602305914,
-          0.045217713986899444,
-          0.06136813214642922,
-          0.06241398930548736
-      ]
-  ];
-  
-  console.log(noise);
+  // generate noise
+  let noise = gradiantTrick(spec.res, 1, spec.freq, spec.oct, spec.redst, perlin);
 
   [vertexData, indexData, numVertices] = noiseToFace(noise);
   console.log("vertexData: " + vertexData);

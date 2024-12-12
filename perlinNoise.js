@@ -102,28 +102,6 @@ function generateNoiseLayer(gridResolution, size, frequency, perlin) {
             // Calculate heights (y values) using Perlin noise
             let y0 = perlin.noise(x0 * frequency, z0 * frequency);
 
-
-            /*
-            let amplitudeSum = 0;
-            for(let oct = octaves; oct > 1; oct--) {
-                y0 += 1/oct * perlin.noise(x0 * frequency * oct, z0 * frequency * oct);
-
-                amplitudeSum += 1/oct;
-            };
-            // keep y values in bounds
-            y0 /= amplitudeSum;
-            */
-            
-            // redistribution
-            //\\y0 **= redist;
-
-            // more bounds stuff (keeping below .5)
-            //y0 *= 0.5;
-
-            // correct bounds from [0, 1] to [-1, 1]
-            //y0 = y0 * 2 - 1;
-
-            // Append a y point for each x value
             noisez.push(y0);
         }
         // Append a row for each z value
