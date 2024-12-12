@@ -66,7 +66,7 @@
            @fragment
            fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
                 // Normalize y position to texture v coordinate
-                var normalizedY = (in.posY * 20 + 1.0) / 2.0; // y is [-1, 1]
+                var normalizedY = (in.posY * 10 + 1.0) / 2.0; // y is [-1, 1]
                 var uv: vec2<f32> = vec2(1, normalizedY); // TODO: Modify u based on biome or something similar
         
                 // Sample the texture
@@ -94,6 +94,7 @@
             spec.freq = document.getElementById("frequencySlider").value;
             spec.oct = document.getElementById("octaveSlider").value;
             spec.redst = document.getElementById("redistSlider").value;
+            //spec.height = document.getElementById("heightSlider").value;
 
             return spec
         }
@@ -166,7 +167,7 @@
               <tr>
                 <td>Resolution</td>
                 <td>
-                    <input type="range" oninput="drawMountain()" min="4" max="30" value="7" class="slider" step="1" id="resolutionSlider">
+                    <input type="range" oninput="drawMountain()" min="10" max="100" value="5" class="slider" step="5" id="resolutionSlider">
                 </td>
               </tr>
               <tr>
@@ -178,13 +179,13 @@
               <tr>
               <td>Octaves</td>
               <td>
-                <input type="range" oninput="drawMountain()" min="1" max="5" value="3" class="slider" id="octaveSlider">
+                <input type="range" oninput="drawMountain()" min="2" max="10" value="3" class="slider" id="octaveSlider">
               </td>
               </tr>
               <tr>
               <td>Redist</td>
               <td>
-                <input type="range" oninput="drawMountain()" min="0.05" max="2" value=".5" step="0.05" class="slider" id="redistSlider">
+                <input type="range" oninput="drawMountain()" min="0.05" max="1" value=".5" step="0.05" class="slider" id="redistSlider">
               </td>
               </tr>
               </tbody>
@@ -193,9 +194,5 @@
           </td>
       </tr>
   </table>
-  
-  
-
 </body>
 </html>
-

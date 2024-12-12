@@ -5,7 +5,7 @@
  * Adapted from Tesselation code by Prof. Bayliss
  * 
  * @author Audrey Fuller <alf9310@rit.edu>
- * @author Gabe Frahm
+ * @author Gabe Frahm <gjf9639@rit.edu>
  */
 'use strict';
 
@@ -129,7 +129,7 @@ async function createMountain(spec, perlin) {
   bary = [];
   
   // generate mountains based on set parameters
-  gradiantTrick(spec.res, 1, spec.freq, spec.oct, spec.redst, perlin);
+  layerToTris(gradiantTrick(spec.res, 1, spec.freq, spec.oct, spec.redst, perlin));
 
   // create and bind vertex buffer
   // set up the attribute we'll use for the vertices

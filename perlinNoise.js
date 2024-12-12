@@ -3,7 +3,7 @@
  * As explained by Adrian Biagioli in this blogpost https://adrianb.io/2014/08/09/perlinnoise.html 
  * 
  * @author Audrey Fuller <alf9310@rit.edu>
- * @author Gabe Frahm
+ * @author Gabe Frahm <gjf9639@rit.edu>
  */
 
 class PerlinNoise {
@@ -81,7 +81,7 @@ class PerlinNoise {
  * @param {Number}          redist           Pushes or pulls middle elevations. Lower = more valleys
  * @param {PerlinNoise}     perlin           The permutation table of noise (acts as the 'seed')
  */
-function generatePerlinNoise(gridResolution, size, frequency, octaves, redist, perlin) {
+function generateNoiseLayer(gridResolution, size, frequency, perlin) {
     // A 2d array to store the perlin noise y values (z values are rows and x values are columns)
     let noise = [];
 
@@ -102,9 +102,9 @@ function generatePerlinNoise(gridResolution, size, frequency, octaves, redist, p
             // Calculate heights (y values) using Perlin noise
             let y0 = perlin.noise(x0 * frequency, z0 * frequency);
 
-            let amplitudeSum = 0;
 
-            // TODO: current octave implementation is less than ideal since values are correlated. Rework perlin noise to use seeds.
+            /*
+            let amplitudeSum = 0;
             for(let oct = octaves; oct > 1; oct--) {
                 y0 += 1/oct * perlin.noise(x0 * frequency * oct, z0 * frequency * oct);
 
@@ -112,15 +112,16 @@ function generatePerlinNoise(gridResolution, size, frequency, octaves, redist, p
             };
             // keep y values in bounds
             y0 /= amplitudeSum;
+            */
             
             // redistribution
-            y0 **= redist;
+            //\\y0 **= redist;
 
             // more bounds stuff (keeping below .5)
-            y0 *= 0.5;
+            //y0 *= 0.5;
 
             // correct bounds from [0, 1] to [-1, 1]
-            y0 = y0 * 2 - 1;
+            //y0 = y0 * 2 - 1;
 
             // Append a y point for each x value
             noisez.push(y0);
